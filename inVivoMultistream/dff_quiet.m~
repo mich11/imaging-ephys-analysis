@@ -1,0 +1,28 @@
+%compute df/f by first 
+%finds low variance period, computing baseline f, and baseline std there, and then using a single baseline value to compute df/f
+%used by suite2p_dff3a and others
+
+function[bstart,bend,sigo,bo,stdthresh,rstd,dff]=dff_quiet(ftmp,xtime,stdWin,sigPerc)
+%compute rolling std
+sdtmp=movstd(ftmp,stdWin);
+%find longest continuous low-variance period over which to compute
+%baseline std
+stdthresh=prctile(sdtmp,sigPerc);
+hivarinds=find(sdtmp>=stdthresh);
+[~,startind]=max(diff(hivarinds));
+bstartpre=hivarinds(startind);
+bendpre=hivarinds(startind+1);
+bopre=mean(ftmp(bstartpre:bendpre));
+%offset so that std falls around baseline
+dfftmp=(ftmp-bopre)./bopre;
+sigopre=std(dfftmp(bstartpre:bendpre));
+%start and end indices and duration of baseline computation window
+bstart=bstartpre;
+bend=bendpre;
+basetime=xtime(bend)-xtime(bstart);
+sigo=sigopre;
+%rbo(i,:)=rbtmp;
+rstd=sdtmp;
+%bo(i)=fo;
+bo=bopre;
+dff=dfftmp;
